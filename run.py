@@ -2,4 +2,4 @@ from cybogram import Cybogram
 
 if __name__ == '__main__':
     bot = Cybogram()
-    bot.start('daispaysagist')
+    bot.start(account='daispaysagist')
