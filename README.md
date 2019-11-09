@@ -25,7 +25,7 @@ To run the bot:
     python3 ./run.py myaccount
     ```
    Or on Windows:
-   ```bash
+   ```cmd
     python3 .\run.py myaccount
     ```
    Where `myaccount` should be replaced by your account name, as listed in the top-level account names in `/config/user_config.yaml`.
