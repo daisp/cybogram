@@ -1,0 +1,36 @@
+# This file must be renamed to "user_config.yaml" before use and filled with the desired account's details and configuration.
+# the top-level strings are available account names to choose from.
+# These account names are what the Cybogram.start() method requires as input
+
+demo_user1:
+
+  # Instagram account login credentials
+  username: demo_user1
+  password: demo_password1
+
+  # desired hashtags to load random posts out of
+  hashtag_list: ["art", "fashion", "gadgets"]
+
+  # desired comments to randomly post
+  comment_list: ["Wow!", "Nice!", "Interesting"]
+
+  # how much likes and comments to post per a single bot run
+  likes_per_run: 20
+  comments_per_run: 25
+
+
+demo_user2:
+
+  # Instagram account login credentials
+  username: demo_user2
+  password: demo_password2
+
+  # desired hashtags to load random posts out of
+  hashtag_list: ["illustration", "lifestyle", "yummy"]
+
+  # desired comments to randomly post
+  comment_list: ["Looks great!", "Love this!", "Stunning"]
+
+  # how much likes and comments to post per a single bot run
+  likes_per_run: 5
+  comments_per_run: 15
