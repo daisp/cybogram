@@ -74,11 +74,21 @@ class Cybogram:
     def __run_hashtag_search(self, query: str):
         self.__browser.get(self.__sys_config['ig_explore_hashtag_url'] + query + '/')
 
-    def __like_current_post(self) -> None:
+    def __like_current_post(self) -> bool:
         """
         This method likes the currently open post page and must be called immediately after
         __load_random_post_from_random_hashtag() has loaded a specific post page.
         """
+        try:
+            unlike_button = self.__browser.find_element_by_xpath(
+                '//span[@aria-label=\"Unlike\"]').find_element_by_xpath('..')
+            if unlike_button is not None:
+                logging.info(datetime.now().strftime(
+                    self.__time_format) + f':(\tAlready liked:\t{self.__browser.current_url}')
+                return False
+        except common.exceptions.NoSuchElementException:
+            logging.info(datetime.now().strftime(
+                self.__time_format) + f'✔\tCould not find Unlike button on {self.__browser.current_url}, therefore I will like this.')
         try:
             like_button = self.__browser.find_element_by_xpath('//span[@aria-label=\"Like\"]').find_element_by_xpath(
                 '..')
@@ -87,12 +97,13 @@ class Cybogram:
                 self.__time_format) + f'❤\tLiked:\t{self.__browser.current_url}')
         except common.exceptions.NoSuchElementException:
             logging.error(datetime.now().strftime(
-                self.__time_format) + f'❌\tAlready liked:\t{self.__browser.current_url}')
+                self.__time_format) + f'❌\tCan\'t find like button on {self.__browser.current_url}')
         except:
             logging.error(datetime.now().strftime(
                 self.__time_format) + f'❌\tUnknown error on {self.__browser.current_url} while trying to like.')
+        return True
 
-    def __comment_on_current_post(self):
+    def __comment_on_current_post(self) -> bool:
         """
         This method selects a random comment from the current user's comment list and posts it on the
         currently open post's page. This method must be called after __load_random_post_from_random_hashtag()
@@ -102,14 +113,14 @@ class Cybogram:
         try:
             # check if already commented on this post in the past
             my_own_account_links = self.__browser.find_elements_by_xpath(
-                f'//a[@title=\"{self.__account}\"][@href=\"{self.__account}\"]')
-            logging.info(f'found {len(my_own_account_links)} instances of links to own account in page')
+                f'//a[@title=\"{self.__account}\"][@href=\"/{self.__account}/\"]')
+            # logging.info(f'found {len(my_own_account_links)} instances of links to own account in page')
 
             if len(my_own_account_links) > 0:
                 # already commented on this post
                 logging.info(datetime.now().strftime(
-                    self.__time_format) + f'😞\tAlready commented on{self.__browser.current_url}')
-                return
+                    self.__time_format) + f':(\tAlready commented on {self.__browser.current_url}')
+                return False
         except:
             logging.error(datetime.now().strftime(
                 self.__time_format) + f'❌\tUnknown error on {self.__browser.current_url} while trying to count the number of my own past comments.')
@@ -120,12 +131,15 @@ class Cybogram:
             comment_text_field = self.__browser.find_element_by_xpath('//textarea[@aria-label=\"Add a comment…\"]')
             comment_text_field.send_keys(chosen_comment)
             comment_text_field.send_keys(Keys.ENTER)
+            logging.info(datetime.now().strftime(
+                self.__time_format) + f'💬\tCommented:\t{self.__browser.current_url}. Comment: "{chosen_comment}"')
         except common.exceptions.NoSuchElementException:
             logging.error(datetime.now().strftime(
                 self.__time_format) + f'❌\tCould not find the comment field on {self.__browser.current_url}')
         except:
             logging.error(datetime.now().strftime(
                 self.__time_format) + f'❌\tUnknown error on {self.__browser.current_url} while trying to comment.')
+        return True
 
     def __follow_random_account_from_post(self):
         raise NotImplementedError
@@ -141,17 +155,14 @@ class Cybogram:
         self.__login(account)
         time.sleep(self.__seconds_to_sleep_after_login)
         while num_liked < self.__user_config[account]['likes_per_run'] or \
-                num_commented <= self.__user_config[account]['comments_per_run']:
+                num_commented < self.__user_config[account]['comments_per_run']:
+            self.__load_random_post_from_random_hashtag()
             if num_liked < self.__user_config[account]['likes_per_run']:
-                self.__load_random_post_from_random_hashtag()
-                self.__like_current_post()
-                num_liked += 1
-                time.sleep(self.__seconds_to_sleep_after_like)
+                if self.__like_current_post():
+                    num_liked += 1
+                    time.sleep(self.__seconds_to_sleep_after_like / 2)
             if num_commented < self.__user_config[account]['comments_per_run']:
-                self.__load_random_post_from_random_hashtag()
-                self.__like_current_post()
-                time.sleep(self.__seconds_to_sleep_after_like / 2)
-                self.__comment_on_current_post()
-                num_commented += 1
-                time.sleep(self.__seconds_to_sleep_after_comment)
+                if self.__comment_on_current_post():
+                    num_commented += 1
+                    time.sleep(self.__seconds_to_sleep_after_comment)
         # self.__follow_random_account_from_post()
